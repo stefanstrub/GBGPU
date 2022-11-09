@@ -4,6 +4,13 @@ from abc import ABC
 
 import numpy as np
 
+YEAR = 31457280.0
+Larm = 2.5e9
+Clight = 299792458.
+kappa = 0.000000
+lambda0 = 0.000000
+fm = 3.168753578738106e-08
+
 # import for GPU if available
 try:
     import cupy as xp
@@ -60,16 +67,8 @@ class GBGPU(object):
         # setup Cython/C++/CUDA calls based on if using GPU
         if self.use_gpu:
             self.xp = xp
-            self.get_ll_func = get_ll_gpu
-            self.fill_global_func = fill_global_gpu
-            self.global_get_ll_func = direct_like_wrap_gpu
-
         else:
             self.xp = np
-            self.get_ll_func = get_ll_cpu
-            self.fill_global_func = fill_global_cpu
-            self.global_get_ll_func = direct_like_wrap_cpu
-
         self.d_d = None
 
     @property
