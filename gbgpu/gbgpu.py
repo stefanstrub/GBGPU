@@ -1,22 +1,14 @@
-from multiprocessing.sharedctypes import Value
 import time
 import warnings
 from abc import ABC
 
 import numpy as np
 
-# import constants
-from gbgpu.utils.constants import *
-from gbgpu.utils.citation import *
-
 # import for GPU if available
 try:
     import cupy as xp
 except (ModuleNotFoundError, ImportError):
     import numpy as xp
-
-from gbgpu.utils.utility import *
-
 
 class GBGPU(object):
     """Generate Galactic Binary Waveforms
