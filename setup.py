@@ -3,6 +3,7 @@ from setuptools import setup
 
 setup(
     name='gbgpu',
+    url='https://github.com/NataliaKor/GBGPU',
     classifiers=[
       'Development Status :: 3 - Alpha',
       'Intended Audience :: Science/Research',
