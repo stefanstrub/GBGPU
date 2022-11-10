@@ -10,6 +10,7 @@ Clight = 299792458.
 kappa = 0.000000
 lambda0 = 0.000000
 fm = 3.168753578738106e-08
+AU = 1.49597870660e11
 
 # import for GPU if available
 try:
