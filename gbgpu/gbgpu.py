@@ -20,6 +20,20 @@ try:
 except (ModuleNotFoundError, ImportError):
     import numpy as xp
 
+def AET(X, Y, Z):
+    """Return the A,E,T channels from X,Y,Z
+    Args:
+        X,Y,Z (xp.ndarray): Arrays holding ``XYZ`` TDI information. The signals can be in any domain.
+    Returns:
+        Tuple: ``(A,E,T)`` with array shapes the same as the input ``XYZ``.
+    """
+    return (
+        (Z - X) / np.sqrt(2.0),
+        (X - 2.0 * Y + Z) / np.sqrt(6.0),
+        (X + Y + Z) / np.sqrt(3.0),
+    )
+
+
 class GBGPU(object):
     """Generate Galactic Binary Waveforms
 
