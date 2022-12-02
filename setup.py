@@ -1,6 +1,8 @@
+# from future.utils import iteritems
+import os
+import shutil
+from os.path import join as pjoin
 from setuptools import setup
-<<<<<<< Updated upstream
-=======
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import numpy
@@ -109,7 +111,6 @@ try:
 except OSError:
     run_cuda_install = False
 
-# run_cuda_install = False
 # Obtain the numpy include directory. This logic works across numpy versions.
 try:
     numpy_include = numpy.get_include()
@@ -135,64 +136,26 @@ if run_cuda_install:
         extra_compile_args={
             "gcc": ["-std=c99"],  # '-g'],
             "nvcc": [
-                # "-arch=sm_80",
-                "-arch=sm_60",
-                #"-gencode=arch=compute_35,code=sm_35",
-                #"-gencode=arch=compute_50,code=sm_50",
-                #"-gencode=arch=compute_52,code=sm_52",
+                "-arch=sm_70",
+                "-gencode=arch=compute_35,code=sm_35",
+                "-gencode=arch=compute_50,code=sm_50",
+                "-gencode=arch=compute_52,code=sm_52",
                 "-gencode=arch=compute_60,code=sm_60",
-                #"-gencode=arch=compute_61,code=sm_61",
-                # "-gencode=arch=compute_70,code=sm_70",
-                # "-gencode=arch=compute_80,code=sm_80",
+                "-gencode=arch=compute_61,code=sm_61",
+                "-gencode=arch=compute_70,code=sm_70",
                 "--default-stream=per-thread",
                 "--ptxas-options=-v",
                 "-c",
                 "--compiler-options",
                 "'-fPIC'",
-                # "-lineinfo",
+                "-lineinfo",
                 "-Xcompiler",
                 "-fopenmp",
             ],  # ,"-G", "-g"] # for debugging
         },
-        include_dirs=[numpy_include, include_gsl_dir, CUDA["include"], "include", "cufftdx/include"],
+        include_dirs=[numpy_include, include_gsl_dir, CUDA["include"], "include"],
     )
-    ext_gpu = Extension("gbgpu.gbgpu_utils", **ext_gpu_dict)
-
-    ext_gpu_dict_2 = dict(
-        sources=["src/SharedMemoryGBGPU.cu", "src/sharedmemgbgpu.pyx"],
-        library_dirs=[lib_gsl_dir, CUDA["lib64"]],
-        libraries=["cudart", "cublas", "cufft", "gsl", "gslcblas", "gomp"],
-        language="c++",
-        runtime_library_dirs=[CUDA["lib64"]],
-        # This syntax is specific to this build system
-        # we're only going to use certain compiler args with nvcc
-        # and not with gcc the implementation of this trick is in
-        # customize_compiler()
-        extra_compile_args={
-            "gcc": ["-std=c99"],  # '-g'],
-            "nvcc": [
-                # "-arch=sm_80",
-                "-arch=sm_60",
-                #"-gencode=arch=compute_35,code=sm_35",
-                #"-gencode=arch=compute_50,code=sm_50",
-                #"-gencode=arch=compute_52,code=sm_52",
-                "-gencode=arch=compute_60,code=sm_60",
-                #"-gencode=arch=compute_61,code=sm_61",
-                #"-gencode=arch=compute_70,code=sm_70",
-                #"-gencode=arch=compute_80,code=sm_80",
-                "--default-stream=per-thread",
-                "--ptxas-options=-v",
-                "-c",
-                "--compiler-options",
-                "'-fPIC'",
-                # "-lineinfo",
-                "-Xcompiler",
-                "-fopenmp",
-            ],  # ,"-G", "-g"] # for debugging
-        },
-        include_dirs=[numpy_include, include_gsl_dir, CUDA["include"], "include", "cufftdx/include"],
-    )
-    ext_gpu2 = Extension("gbgpu.sharedmem", **ext_gpu_dict_2)
+    ext_gpu = Extension("gbgpu_utils", **ext_gpu_dict)
 
 cu_files = ["gbgpu_utils"]
 pyx_files = ["GBGPU"]
@@ -212,10 +175,10 @@ ext_cpu_dict = dict(
     },  # '-g'],
     include_dirs=[numpy_include, include_gsl_dir, "include"],
 )
-ext_cpu = Extension("gbgpu.gbgpu_utils_cpu", **ext_cpu_dict)
+ext_cpu = Extension("gbgpu_utils_cpu", **ext_cpu_dict)
 
 if run_cuda_install:
-    extensions = [ext_gpu2, ext_gpu, ext_cpu]
+    extensions = [ext_gpu, ext_cpu]
 
 else:
     extensions = [ext_cpu]
@@ -237,17 +200,24 @@ with open(fp_out_name, "w") as fp_out:
 
                     except (ValueError) as e:
                         continue
->>>>>>> Stashed changes
 
 
 setup(
-    name='gbgpu',
-    url='https://github.com/NataliaKor/GBGPU',
-    classifiers=[
-      'Development Status :: 3 - Alpha',
-      'Intended Audience :: Science/Research',
-      'Programming Language :: Python :: 3',
-    ],
-    packages=setuptools.find_packages(),
-    install_requires=['numpy', 'cupy']
+    name="gbgpu",
+    # Random metadata. there's more you can supply
+    author="Michael Katz",
+    version="0.1",
+    packages=["gbgpu", "gbgpu.utils"],
+    py_modules=["gbgpu.gbgpu", "gbgpu.thirdbody"],
+    ext_modules=extensions,
+    # Inject our custom trigger
+    cmdclass={"build_ext": custom_build_ext},
+    # Since the package has c code, the egg cannot be zipped
+    zip_safe=False,
 )
+
+for fp in cu_files:
+    os.remove("src/" + fp + ".cpp")
+
+for fp in pyx_files:
+    os.remove("src/" + fp + "_cpu.pyx")
